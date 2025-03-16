@@ -102,8 +102,9 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class RuneLite
 {
-	public static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+	public static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".apogee");
 	public static final File CACHE_DIR = new File(RUNELITE_DIR, "cache");
+	public static final File GAMEPACK_DIR = new File(RUNELITE_DIR, "gamepacks");
 	public static final File PLUGINS_DIR = new File(RUNELITE_DIR, "plugins");
 	public static final File SCREENSHOT_DIR = new File(RUNELITE_DIR, "screenshots");
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");

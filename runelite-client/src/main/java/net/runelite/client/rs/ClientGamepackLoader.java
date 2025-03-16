@@ -25,42 +25,49 @@
  */
 package net.runelite.client.rs;
 
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import net.runelite.client.RuneLite;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-@Getter
-class RSConfig
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.StandardCopyOption;
+
+@AllArgsConstructor
+class ClientGamepackLoader
 {
-	private final Map<String, String> appletProperties = new HashMap<>();
-	private final Map<String, String> classLoaderProperties = new HashMap<>();
+	private final OkHttpClient okHttpClient;
 
-	String getCodeBase()
+	File fetch(HttpUrl url, RSConfig config) throws IOException
 	{
-		return classLoaderProperties.get("codebase");
+		File gamepack = new File(RuneLite.GAMEPACK_DIR, config.getInitialJar());
+		if(Files.exists(gamepack.toPath(), LinkOption.NOFOLLOW_LINKS) && Files.size(gamepack.toPath()) > 0) {
+			return gamepack;
+		}
+
+		final Request request = new Request.Builder()
+			.url(url)
+			.build();
+
+		try (Response response = okHttpClient.newCall(request).execute())
+		{
+			if (!response.isSuccessful())
+			{
+				throw new IOException("Unsuccessful response: " + response.message());
+			}
+
+			Files.copy(response.body().byteStream(), gamepack.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
+
+		return gamepack;
 	}
 
-	void setCodebase(String codebase)
-	{
-		classLoaderProperties.put("codebase", codebase);
-	}
-
-	String getInitialJar()
-	{
-		return classLoaderProperties.get("initial_jar");
-	}
-
-	String getInitialJarBase() {
-		return classLoaderProperties.get("initial_jar_base");
-	}
-
-	String getInitialClass()
-	{
-		return classLoaderProperties.get("initial_class").replace(".class", "");
-	}
-
-	String getRuneLiteWorldParam()
-	{
-		return classLoaderProperties.get("runelite.worldparam");
+	static {
+		RuneLite.GAMEPACK_DIR.mkdirs();
 	}
 }

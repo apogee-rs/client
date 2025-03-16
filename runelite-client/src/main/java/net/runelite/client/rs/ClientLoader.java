@@ -28,7 +28,10 @@ package net.runelite.client.rs;
 
 import com.google.common.base.Strings;
 import java.applet.Applet;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -51,6 +54,7 @@ public class ClientLoader implements Supplier<Client>
 	private static final int NUM_ATTEMPTS = 6;
 
 	private final ClientConfigLoader clientConfigLoader;
+	private final ClientGamepackLoader clientGamepackLoader;
 	private final WorldSupplier worldSupplier;
 	private final RuntimeConfigLoader runtimeConfigLoader;
 	private final String javConfigUrl;
@@ -60,6 +64,7 @@ public class ClientLoader implements Supplier<Client>
 	public ClientLoader(OkHttpClient okHttpClient, RuntimeConfigLoader runtimeConfigLoader, String javConfigUrl)
 	{
 		this.clientConfigLoader = new ClientConfigLoader(okHttpClient);
+		this.clientGamepackLoader = new ClientGamepackLoader(okHttpClient);
 		this.worldSupplier = new WorldSupplier(okHttpClient);
 		this.runtimeConfigLoader = runtimeConfigLoader;
 		this.javConfigUrl = javConfigUrl;
@@ -186,11 +191,13 @@ public class ClientLoader implements Supplier<Client>
 		return backupConfig;
 	}
 
-	private Client loadClient(RSConfig config) throws ClassNotFoundException, IllegalAccessException, InstantiationException
+	private Client loadClient(RSConfig config) throws ClassNotFoundException, IllegalAccessException, InstantiationException, IOException
 	{
+		HttpUrl url = HttpUrl.get(config.getInitialJarBase() + config.getInitialJar());
+		File gamepack = clientGamepackLoader.fetch(url, config);
+		URLClassLoader classLoader = new URLClassLoader(new URL[] { gamepack.toURI().toURL() }, ClientLoader.class.getClassLoader());
 		String initialClass = config.getInitialClass();
-		Class<?> clientClass = ClientLoader.class.getClassLoader()
-			.loadClass(initialClass);
+		Class<?> clientClass = classLoader.loadClass(initialClass);
 
 		Client rs = (Client) clientClass.newInstance();
 		((Applet) rs).setStub(new RSAppletStub(config, runtimeConfigLoader));

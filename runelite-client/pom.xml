@@ -240,12 +240,6 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>net.runelite</groupId>
-			<artifactId>injected-client</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>net.runelite.arn</groupId>
 			<artifactId>http-api</artifactId>
 			<version>1.2.16</version>
@@ -295,6 +289,11 @@
 			<artifactId>mockwebserver</artifactId>
 			<version>3.14.9</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20250107</version>
 		</dependency>
 	</dependencies>
 
